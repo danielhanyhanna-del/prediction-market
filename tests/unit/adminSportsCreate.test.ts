@@ -207,6 +207,45 @@ describe('admin sports create', () => {
     expect(normalizeDateTimeLocalValue(derived.payload?.startTime ?? '')).toBe('2026-04-01T21:00')
   })
 
+  it('rejects game context values that normalize to empty slugs', () => {
+    const sports = createInitialAdminSportsForm()
+    sports.section = 'games'
+    sports.eventVariant = 'standard'
+    sports.sportSlug = '!!!'
+    sports.leagueSlug = '###'
+    sports.startTime = '2026-04-01T21:00'
+    sports.teams[0].name = 'LA Galaxy'
+    sports.teams[1].name = 'Inter Miami'
+
+    const derived = buildAdminSportsDerivedContent({
+      baseSlug: 'la-galaxy-vs-inter-miami-abc',
+      sports,
+    })
+
+    expect(derived.payload).toBeNull()
+    expect(buildAdminSportsStepErrors({
+      step: 1,
+      sports,
+      hasTeamLogoByHostStatus: {
+        home: true,
+        away: true,
+      },
+    })).toEqual([
+      'Select a sports match or enter a sport slug.',
+      'Select a sports match or enter a league slug.',
+    ])
+    expect(buildAdminSportsStepErrors({
+      step: 2,
+      sports,
+      hasTeamLogoByHostStatus: {
+        home: true,
+        away: true,
+      },
+    })).toEqual([
+      'Generated sports templates require full game details.',
+    ])
+  })
+
   it('keeps moneyline markets mandatory inside exact score sports packs', () => {
     const sports = createInitialAdminSportsForm()
     sports.section = 'games'
