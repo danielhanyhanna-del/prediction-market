@@ -1046,7 +1046,7 @@ export function buildAdminSportsDerivedContent(args: {
       return null
     }
 
-    if (isGamesSection && !hasSourceIdentity && teams.some(team => !team.name)) {
+    if (isGamesSection && teams.some(team => !team.name)) {
       return null
     }
 
@@ -1119,7 +1119,7 @@ export function buildAdminSportsDerivedContent(args: {
       return null
     }
 
-    if (isGamesSection && !hasSourceIdentity && (!args.sports.sportSlug.trim() || !args.sports.leagueSlug.trim() || !eventDate || !startTimeIso)) {
+    if (isGamesSection && (!args.sports.sportSlug.trim() || !args.sports.leagueSlug.trim() || !eventDate || !startTimeIso)) {
       return null
     }
 
@@ -1200,7 +1200,6 @@ export function buildAdminSportsStepErrors(args: {
   const homeName = normalizeText(homeTeam?.name ?? '')
   const awayName = normalizeText(awayTeam?.name ?? '')
   const sourceIdentity = resolveAdminSportsSourceIdentity(args.sports)
-  const hasSourceIdentity = sourceIdentity.isComplete
 
   if (args.step === 1) {
     if (!args.sports.section) {
@@ -1211,7 +1210,7 @@ export function buildAdminSportsStepErrors(args: {
       if (sourceIdentity.hasSourceId && !sourceIdentity.provider) {
         errors.push('Select a supported sports data provider for the source event or game ID.')
       }
-      else if (!hasSourceIdentity) {
+      else {
         if (!args.sports.sportSlug.trim()) {
           errors.push('Select a sports match or enter a sport slug.')
         }

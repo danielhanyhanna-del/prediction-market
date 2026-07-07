@@ -309,7 +309,7 @@ describe('admin sports create', () => {
     ])
   })
 
-  it('allows a complete source identity to replace manual game fields', () => {
+  it('requires full game details even when source identity is complete', () => {
     const sports = createInitialAdminSportsForm()
     sports.section = 'games'
     sports.eventVariant = 'standard'
@@ -321,24 +321,44 @@ describe('admin sports create', () => {
       sports,
     })
 
-    expect(derived.payload).toEqual(expect.objectContaining({
-      section: 'games',
-      eventVariant: 'standard',
-      sourceProvider: 'thesportsdb',
-      sourceEventId: 'fixture-123',
-    }))
-    expect(derived.payload?.teams).toBeUndefined()
-    expect(derived.payload?.sportSlug).toBeUndefined()
-    expect(derived.payload?.leagueSlug).toBeUndefined()
+    expect(derived.payload).toBeNull()
+    expect(buildAdminSportsStepErrors({
+      step: 1,
+      sports,
+      hasTeamLogoByHostStatus: {
+        home: false,
+        away: false,
+      },
+    })).toEqual([
+      'Select a sports match or enter a sport slug.',
+      'Select a sports match or enter a league slug.',
+      'Select a sports match or enter the game start time.',
+      'Select a sports match or enter both home and away teams.',
+      'Sports games require a logo for both home and away teams.',
+    ])
   })
 
   it('omits blank source match confidence and clamps provided values', () => {
     const sports = createInitialAdminSportsForm()
     sports.section = 'games'
     sports.eventVariant = 'standard'
+    sports.sportSlug = 'Soccer'
+    sports.leagueSlug = 'MLS'
+    sports.startTime = '2026-04-01T21:00'
     sports.sourceProvider = 'thesportsdb'
     sports.sourceEventId = 'fixture-123'
+    sports.teams[0].name = 'LA Galaxy'
+    sports.teams[1].name = 'Inter Miami'
 
+    expect(buildAdminSportsDerivedContent({
+      baseSlug: 'lakers-vs-celtics-abc',
+      sports,
+    }).payload).toEqual(expect.objectContaining({
+      sportSlug: 'soccer',
+      leagueSlug: 'mls',
+      sourceProvider: 'thesportsdb',
+      sourceEventId: 'fixture-123',
+    }))
     expect(buildAdminSportsDerivedContent({
       baseSlug: 'lakers-vs-celtics-abc',
       sports,
